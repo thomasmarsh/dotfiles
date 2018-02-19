@@ -1,0 +1,6 @@
+# Try not to step into uninteresting library code. Needs some work.
+settings set target.process.thread.step-avoid-regexp ^(std::(!function)|boost::shared_ptr)
+
+command regex q 's/(.+)/frame variable *%1.__ptr_/'
+
+command script import /usr/local/opt/chisel/libexec/fblldb.py
