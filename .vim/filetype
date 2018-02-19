@@ -1,2 +1,0 @@
-"au BufNewFile,BufRead *.mm set filetype=objcpp
-"au BufRead,BufNewFile *.capnp set filetype=capnp

@@ -1,0 +1,3 @@
+package autojump
+package fzf-autojump
+theme default
