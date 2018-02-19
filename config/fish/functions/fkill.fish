@@ -1,0 +1,1 @@
+/Users/tmarsh/.config/fisherman/fzy/functions/fkill.fish
