@@ -1,9 +1,10 @@
-config/nvim/plugged/
-config/configstore/
-config/gcloud/
-config/nixpkgs/
-config/octave/
-config/fish/fishd.*
 config/Steinberg Installation Updater/
+config/configstore/
+config/fish/fishd.*
+config/fisherman/
+config/gcloud/
 config/mupen64plus/
 config/muse.org/
+config/nixpkgs/
+config/nvim/plugged/
+config/octave/
