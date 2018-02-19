@@ -41,5 +41,6 @@ Plug 'tomtom/tlib_vim'
 Plug 'tomtom/vimscriptuploader.rb'
 Plug 'tpope/vim-fireplace'
 Plug 'tpope/vim-fugitive'
+Plug 'vim-airline/vim-airline-themes'
 Plug 'wting/rust.vim'
 call plug#end()
