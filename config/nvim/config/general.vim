@@ -1,7 +1,7 @@
 filetype plugin indent on
 set nocompatible
 set number
-"set nowrap
+set nowrap
 set showmode
 set smartcase
 set smarttab
