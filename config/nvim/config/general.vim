@@ -4,7 +4,6 @@ set number
 "set nowrap
 set showmode
 set smartcase
-"set ignorecase smartcase incsearch
 set smarttab
 set smartindent
 set autoindent
@@ -34,10 +33,6 @@ set backspace=eol,start,indent
 
 autocmd FileType make set noexpandtab
 
-au BufNewFile,BufRead *.mm  setf objcpp
-au BufNewFile,BufRead *.cpp set syntax=cpp11
-au BufNewFile,BufRead *.cc  set syntax=cpp11
-
 noremap n n:call HighlightNearCursor()<CR>
 noremap p p:call HighlightNearCursor()<CR>
 noremap * *:call HighlightNearCursor()<CR>
@@ -58,12 +53,6 @@ nmap <leader>= :TagbarToggle<CR>
 let g:tagbar_autofocus = 1
 
 map <Leader>n :NERDTreeToggle<CR>
-
-let g:haskell_tabular = 1
-
-vmap a= :Tabularize /=<CR>
-vmap a; :Tabularize /::<CR>
-vmap a- :Tabularize /-><CR>
 
 map <silent> <Leader>t :CtrlP()<CR>
 noremap <leader>b<space> :CtrlPBuffer<cr>
