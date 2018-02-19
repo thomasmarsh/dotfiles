@@ -1,3 +1,3 @@
 function kx
-	pkill XCode
+	pkill Xcode
 end
