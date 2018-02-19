@@ -4,3 +4,6 @@ config/gcloud/
 config/nixpkgs/
 config/octave/
 config/fish/fishd.*
+config/Steinberg Installation Updater/
+config/mupen64plus/
+config/muse.org/
