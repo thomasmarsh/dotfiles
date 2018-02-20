@@ -8,3 +8,4 @@ config/muse.org/
 config/nixpkgs/
 config/nvim/plugged/
 config/octave/
+.netrwhist
