@@ -31,6 +31,7 @@ Plug 'git://git.wincent.com/command-t.git', {'do': 'cd ruby/command-t/ext/comman
 Plug 'godlygeek/tabular'
 Plug 'google/vroom'
 Plug 'jpalardy/vim-slime'
+Plug 'jremmen/vim-ripgrep'
 Plug 'kchmck/vim-coffee-script'
 Plug 'majutsushi/tagbar'
 Plug 'mileszs/ack.vim'

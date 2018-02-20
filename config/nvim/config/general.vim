@@ -77,10 +77,9 @@
     highlight OverLength ctermbg=magenta ctermfg=white guibg=#592929
     match OverLength /\%81v.\+/
 
-    " Make naughty characters visible...
-    set lcs=tab:⇒·,trail:␣,nbsp:~"
-    highlight InvisibleSpaces ctermfg=Black ctermbg=Black
-    call matchadd('InvisibleSpaces', '\s\+\%#', 100)
+    " Highlight dodgy characters
+    set listchars=tab:⇒·,trail:␣,nbsp:~"
+    set list!
 
 
 "====[ Special input handling ]=================================================
