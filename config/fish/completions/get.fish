@@ -1,0 +1,1 @@
+/Users/tmarsh/.config/fisherman/get/completions/get.fish
