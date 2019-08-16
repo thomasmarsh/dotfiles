@@ -75,7 +75,7 @@
 
     " Make the 81st column stand out
     highlight OverLength ctermbg=magenta ctermfg=white guibg=#592929
-    match OverLength /\%81v.\+/
+    match OverLength /\%81v./
 
     " Highlight dodgy characters
     set listchars=tab:⇒·,trail:␣,nbsp:~"
