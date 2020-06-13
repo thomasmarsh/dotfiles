@@ -372,7 +372,7 @@ endfunction
 
 function! s:git_version_requirement(...)
   if !exists('s:git_version')
-    let s:git_version = map(split(split(s:system('git --version'))[2], '\.'), 'str2nr(v:val)')
+    let s:git_version = map(split(split(s:system(['git', '--version']))[2], '\.'), 'str2nr(v:val)')
   endif
   return s:version_requirement(s:git_version, a:000)
 endfunction
@@ -632,17 +632,39 @@ function! plug#(repo, ...)
     let g:plugs[name] = spec
     let s:loaded[name] = get(s:loaded, name, 0)
   catch
-    return s:err(v:exception)
+    return s:err(repo . ' ' . v:exception)
   endtry
 endfunction
 
 function! s:parse_options(arg)
   let opts = copy(s:base_spec)
   let type = type(a:arg)
+  let opt_errfmt = 'Invalid argument for "%s" option of :Plug (expected: %s)'
   if type == s:TYPE.string
+    if empty(a:arg)
+      throw printf(opt_errfmt, 'tag', 'string')
+    endif
     let opts.tag = a:arg
   elseif type == s:TYPE.dict
     call extend(opts, a:arg)
+    for opt in ['branch', 'tag', 'commit', 'rtp', 'dir', 'as']
+      if has_key(opts, opt)
+      \ && (type(opts[opt]) != s:TYPE.string || empty(opts[opt]))
+        throw printf(opt_errfmt, opt, 'string')
+      endif
+    endfor
+    for opt in ['on', 'for']
+      if has_key(opts, opt)
+      \ && type(opts[opt]) != s:TYPE.list
+      \ && (type(opts[opt]) != s:TYPE.string || empty(opts[opt]))
+        throw printf(opt_errfmt, opt, 'string or list')
+      endif
+    endfor
+    if has_key(opts, 'do')
+      \ && type(opts.do) != s:TYPE.funcref
+      \ && (type(opts.do) != s:TYPE.string || empty(opts.do))
+        throw printf(opt_errfmt, 'do', 'string or funcref')
+    endif
     if has_key(opts, 'dir')
       let opts.dir = s:dirpath(s:plug_expand(opts.dir))
     endif
@@ -864,8 +886,15 @@ endfunction
 
 function! s:chsh(swap)
   let prev = [&shell, &shellcmdflag, &shellredir]
-  if !s:is_win && a:swap
-    set shell=sh shellredir=>%s\ 2>&1
+  if !s:is_win
+    set shell=sh
+  endif
+  if a:swap
+    if &shell =~# 'powershell\.exe' || &shell =~# 'pwsh$'
+      let &shellredir = '2>&1 | Out-File -Encoding UTF8 %s'
+    elseif &shell =~# 'sh' || &shell =~# 'cmd\.exe'
+      set shellredir=>%s\ 2>&1
+    endif
   endif
   return prev
 endfunction
@@ -898,7 +927,7 @@ function! s:regress_bar()
 endfunction
 
 function! s:is_updated(dir)
-  return !empty(s:system_chomp('git log --pretty=format:"%h" "HEAD...HEAD@{1}"', a:dir))
+  return !empty(s:system_chomp(['git', 'log', '--pretty=format:%h', 'HEAD...HEAD@{1}'], a:dir))
 endfunction
 
 function! s:do(pull, force, todo)
@@ -935,6 +964,7 @@ function! s:do(pull, force, todo)
         endif
       elseif type == s:TYPE.funcref
         try
+          call s:load_plugin(spec)
           let status = installed ? 'installed' : (updated ? 'updated' : 'unchanged')
           call spec.do({ 'name': name, 'status': status, 'force': a:force })
         catch
@@ -961,7 +991,7 @@ endfunction
 
 function! s:checkout(spec)
   let sha = a:spec.commit
-  let output = s:system('git rev-parse HEAD', a:spec.dir)
+  let output = s:system(['git', 'rev-parse', 'HEAD'], a:spec.dir)
   if !v:shell_error && !s:hash_match(sha, s:lines(output)[0])
     let output = s:system(
           \ 'git fetch --depth 999999 && git checkout '.plug#shellescape(sha).' --', a:spec.dir)
@@ -1079,8 +1109,13 @@ function! s:update_impl(pull, force, args) abort
   normal! 2G
   silent! redraw
 
-  let s:clone_opt = get(g:, 'plug_shallow', 1) ?
-        \ '--depth 1' . (s:git_version_requirement(1, 7, 10) ? ' --no-single-branch' : '') : ''
+  let s:clone_opt = []
+  if get(g:, 'plug_shallow', 1)
+    call extend(s:clone_opt, ['--depth', '1'])
+    if s:git_version_requirement(1, 7, 10)
+      call add(s:clone_opt, '--no-single-branch')
+    endif
+  endif
 
   if has('win32unix') || has('wsl')
     let s:clone_opt .= ' -c core.eol=lf -c core.autocrlf=input'
@@ -1264,7 +1299,7 @@ function! s:job_cb(fn, job, ch, data)
 endfunction
 
 function! s:nvim_cb(job_id, data, event) dict abort
-  return a:event == 'stdout' ?
+  return (a:event == 'stdout' || a:event == 'stderr') ?
     \ s:job_cb('s:job_out_cb',  self, 0, join(a:data, "\n")) :
     \ s:job_cb('s:job_exit_cb', self, 0, a:data)
 endfunction
@@ -1277,8 +1312,13 @@ function! s:spawn(name, cmd, opts)
   let argv = s:is_win ? ['cmd', '/s', '/c', '"'.cmd.'"'] : ['sh', '-c', cmd]
 
   if s:nvim
+    if has_key(a:opts, 'dir')
+      let job.cwd = a:opts.dir
+    endif
+    let argv = a:cmd
     call extend(job, {
     \ 'on_stdout': function('s:nvim_cb'),
+    \ 'on_stderr': function('s:nvim_cb'),
     \ 'on_exit':   function('s:nvim_cb'),
     \ })
     let jid = s:plug_call('jobstart', argv, job)
@@ -1291,9 +1331,16 @@ function! s:spawn(name, cmd, opts)
             \ 'Invalid arguments (or job table is full)']
     endif
   elseif s:vim8
+    let cmd = join(map(copy(a:cmd), 'plug#shellescape(v:val, {"script": 0})'))
+    if has_key(a:opts, 'dir')
+      let cmd = s:with_cd(cmd, a:opts.dir, 0)
+    endif
+    let argv = s:is_win ? ['cmd', '/s', '/c', '"'.cmd.'"'] : ['sh', '-c', cmd]
     let jid = job_start(s:is_win ? join(argv, ' ') : argv, {
     \ 'out_cb':   function('s:job_cb', ['s:job_out_cb',  job]),
+    \ 'err_cb':   function('s:job_cb', ['s:job_out_cb',  job]),
     \ 'exit_cb':  function('s:job_cb', ['s:job_exit_cb', job]),
+    \ 'err_mode': 'raw',
     \ 'out_mode': 'raw'
     \})
     if job_status(jid) == 'run'
@@ -1304,7 +1351,7 @@ function! s:spawn(name, cmd, opts)
       let job.lines   = ['Failed to start job']
     endif
   else
-    let job.lines = s:lines(call('s:system', [cmd]))
+    let job.lines = s:lines(call('s:system', has_key(a:opts, 'dir') ? [a:cmd, a:opts.dir] : [a:cmd]))
     let job.error = v:shell_error != 0
     let job.running = 0
   endif
@@ -1401,8 +1448,14 @@ while 1 " Without TCO, Vim stack is bound to explode
     let [error, _] = s:git_validate(spec, 0)
     if empty(error)
       if pull
-        let fetch_opt = (has_tag && !empty(globpath(spec.dir, '.git/shallow'))) ? '--depth 99999999' : ''
-        call s:spawn(name, printf('git fetch %s %s 2>&1', fetch_opt, prog), { 'dir': spec.dir })
+        let cmd = ['git', 'fetch']
+        if has_tag && !empty(globpath(spec.dir, '.git/shallow'))
+          call extend(cmd, ['--depth', '99999999'])
+        endif
+        if !empty(prog)
+          call add(cmd, prog)
+        endif
+        call s:spawn(name, cmd, { 'dir': spec.dir })
       else
         let s:jobs[name] = { 'running': 0, 'lines': ['Already installed'], 'error': 0 }
       endif
@@ -1452,7 +1505,7 @@ G_NVIM = vim.eval("has('nvim')") == '1'
 G_PULL = vim.eval('s:update.pull') == '1'
 G_RETRIES = int(vim.eval('get(g:, "plug_retries", 2)')) + 1
 G_TIMEOUT = int(vim.eval('get(g:, "plug_timeout", 60)'))
-G_CLONE_OPT = vim.eval('s:clone_opt')
+G_CLONE_OPT = ' '.join(vim.eval('s:clone_opt'))
 G_PROGRESS = vim.eval('s:progress_opt(1)')
 G_LOG_PROB = 1.0 / int(vim.eval('s:update.threads'))
 G_STOP = thr.Event()
@@ -1989,7 +2042,7 @@ function! s:update_ruby()
     end
   } if VIM::evaluate('s:mac_gui') == 1
 
-  clone_opt = VIM::evaluate('s:clone_opt')
+  clone_opt = VIM::evaluate('s:clone_opt').join(' ')
   progress = VIM::evaluate('s:progress_opt(1)')
   nthr.times do
     mtx.synchronize do
@@ -2159,9 +2212,10 @@ function! s:git_validate(spec, check_branch)
               \ branch, a:spec.branch)
       endif
       if empty(err)
-        let [ahead, behind] = split(s:lastline(s:system(printf(
-              \ 'git rev-list --count --left-right HEAD...origin/%s',
-              \ a:spec.branch), a:spec.dir)), '\t')
+        let [ahead, behind] = split(s:lastline(s:system([
+        \ 'git', 'rev-list', '--count', '--left-right',
+        \ printf('HEAD...origin/%s', a:spec.branch)
+        \ ], a:spec.dir)), '\t')
         if !v:shell_error && ahead
           if behind
             " Only mention PlugClean if diverged, otherwise it's likely to be
@@ -2561,7 +2615,7 @@ function! s:snapshot(force, ...) abort
   let names = sort(keys(filter(copy(g:plugs),
         \'has_key(v:val, "uri") && !has_key(v:val, "commit") && isdirectory(v:val.dir)')))
   for name in reverse(names)
-    let sha = s:system_chomp('git rev-parse --short HEAD', g:plugs[name].dir)
+    let sha = s:system_chomp(['git', 'rev-parse', '--short', 'HEAD'], g:plugs[name].dir)
     if !empty(sha)
       call append(anchor, printf("silent! let g:plugs['%s'].commit = '%s'", name, sha))
       redraw

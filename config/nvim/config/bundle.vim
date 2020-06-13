@@ -10,7 +10,6 @@ endif
 call plug#begin('~/.vim/plugged')
 Plug 'scrooloose/syntastic'
 " user bundles
-Plug 'hwayne/tla.vim'
 Plug 'ElmCast/elm-vim'
 Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'Shougo/neocomplete.vim'
@@ -28,6 +27,7 @@ Plug 'derekwyatt/vim-scala'
 Plug 'eagletmt/ghcmod-vim'
 Plug 'eagletmt/neco-ghc'
 Plug 'easymotion/vim-easymotion'
+Plug 'edwinb/idris2-vim'
 Plug 'elzr/vim-json'
 Plug 'ervandew/supertab'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
@@ -35,6 +35,7 @@ Plug 'garbas/vim-snipmate'
 Plug 'git://git.wincent.com/command-t.git', {'do': 'cd ruby/command-t/ext/command-t && ruby extconf.rb && make' }
 Plug 'godlygeek/tabular'
 Plug 'google/vroom'
+Plug 'hwayne/tla.vim'
 Plug 'jpalardy/vim-slime'
 Plug 'jremmen/vim-ripgrep'
 Plug 'kchmck/vim-coffee-script'

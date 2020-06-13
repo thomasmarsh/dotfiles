@@ -33,5 +33,5 @@ SETUVAR fish_pager_color_completion:\x1d
 SETUVAR fish_pager_color_description:B3A06D\x1eyellow
 SETUVAR fish_pager_color_prefix:white\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
-SETUVAR fish_user_paths:/usr/local/opt/qt/bin\x1e/Users/tmarsh/dev/flutter/bin
-SETUVAR fisher_dependency_count:last_job_id\x1egetopts\x1eawait\x1eget\x1efzf\x1efzy\x1erbenv
+SETUVAR fish_user_paths:/usr/local/opt/qt/bin\x1e/usr/local/opt/qt/bin\x1e~/dev/flutter/bin\x1e~/Library/Qt5\x2e14\x2e1/5\x2e14\x2e1/clang_64/bin
+SETUVAR fisher_dependency_count:last_job_id\x1egetopts\x1eawait\x1eget\x1efzf\x1efzy
