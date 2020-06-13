@@ -1,4 +1,6 @@
 package autojump
+package bass
 package foreign-env
 package fzf-autojump
+package https://github.com/FabioAntunes/fish-nvm
 theme default
