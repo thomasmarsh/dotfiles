@@ -30,3 +30,5 @@ map <Leader>vi :VimuxInspectRunner<CR>
 
 " Zoom the tmux runner pane
 map <Leader>vz :VimuxZoomRunner<CR>
+
+set nolazyredraw

@@ -1,5 +1,5 @@
 " fill out pathogen modules
-execute pathogen#infect()
+" execute pathogen#infect()
 
 if empty(glob('~/.vim/autoload/plug.vim'))
   silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
@@ -8,8 +8,9 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 
 call plug#begin('~/.vim/plugged')
-" Plug 'scrooloose/syntastic'
+Plug 'scrooloose/syntastic'
 " user bundles
+Plug 'hwayne/tla.vim'
 Plug 'ElmCast/elm-vim'
 Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'Shougo/neocomplete.vim'
@@ -29,6 +30,7 @@ Plug 'eagletmt/neco-ghc'
 Plug 'easymotion/vim-easymotion'
 Plug 'elzr/vim-json'
 Plug 'ervandew/supertab'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'garbas/vim-snipmate'
 Plug 'git://git.wincent.com/command-t.git', {'do': 'cd ruby/command-t/ext/command-t && ruby extconf.rb && make' }
 Plug 'godlygeek/tabular'
